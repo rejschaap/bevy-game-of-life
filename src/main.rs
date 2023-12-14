@@ -17,8 +17,10 @@ struct Game {
     board: Vec<Vec<bool>>,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 struct Cell {
+    i: usize,
+    j: usize,
     alive: bool,
 }
 
@@ -39,23 +41,28 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
         .collect();
 
     for (j, line) in game.board.iter().enumerate() {
-        for (i, alive) in line.iter().enumerate() {
+        for (i, &alive) in line.iter().enumerate() {
+            let color = get_color(alive);
+
+            let x = 10. * i as f32;
+            let y = 10. * j as f32;
+
             commands.spawn(SpriteBundle {
                 sprite: Sprite {
-                    color: Color::rgb(112. / 255., 147. / 255., 204. / 255.),
-                    custom_size: Some(Vec2::new(50.0, 100.0)),
+                    color: color,
+                    custom_size: Some(Vec2::new(10.0, 10.0)),
                     ..default()
                 },
-                transform: Transform::from_translation(Vec3::new(-50., 0., 0.)),
+                transform: Transform::from_translation(Vec3::new(x, y, 0.)),
                 ..default()
             })
-            .insert(Cell { alive: *alive });
+            .insert(Cell { i, j, alive });
         }
     }
 
 }
 
-fn update(mut game: ResMut<Game>) {
+fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
     let previous = &game.board;
 
     game.board = (0..game.height)
@@ -66,5 +73,19 @@ fn update(mut game: ResMut<Game>) {
         })
         .collect()
     })
-    .collect()
+    .collect();
+
+    for (mut sprite, mut cell) in &mut query {
+        cell.alive = game.board[cell.j][cell.i];
+        sprite.color = get_color(cell.alive)
+    }
+}
+
+fn get_color(alive: bool) -> Color {
+    if alive {
+        Color::rgb(112. / 255., 147. / 255., 204. / 255.)
+    }
+    else {
+        Color::rgb(38. / 255., 82. / 255., 153. / 255.)
+    }
 }
