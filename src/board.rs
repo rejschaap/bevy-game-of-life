@@ -10,10 +10,12 @@ mod test {
 
     #[test]
     fn test_create_board_empty() {
-        let board = create_board_empty(2, 3);
+        let board = create_board_empty(1, 2);
 
-        assert_eq!(board.len(), 3);
-        assert_eq!(board[0].len(), 2);
-        assert!(!board[2][1]);
+        assert_eq!(board.len(), 2);
+        assert_eq!(board[0].len(), 1);
+
+        assert!(!board[0][0]);
+        assert!(!board[1][0]);
     }
 }
