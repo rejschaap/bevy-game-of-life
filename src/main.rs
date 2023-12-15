@@ -46,7 +46,7 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
             commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
-                        color: color,
+                        color,
                         custom_size: Some(Vec2::new(10.0, 10.0)),
                         ..default()
                     },

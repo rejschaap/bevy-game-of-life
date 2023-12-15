@@ -14,6 +14,6 @@ mod test {
 
         assert_eq!(board.len(), 3);
         assert_eq!(board[0].len(), 2);
-        assert_eq!(board[2][1], false);
+        assert!(!board[2][1]);
     }
 }
