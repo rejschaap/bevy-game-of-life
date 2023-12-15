@@ -1,4 +1,8 @@
+mod board;
+
 use bevy::prelude::*;
+use board::*;
+
 
 fn main() {
     App::new()
@@ -30,15 +34,7 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     game.width = 32;
     game.height = 20;
 
-    game.board = (0..game.height)
-        .map(|j| {
-            (0..game.width)
-            .map(|i| {
-                (i + j) % 2 == 0
-            })
-            .collect()
-        })
-        .collect();
+    game.board = create_board_empty(game.width, game.height);
 
     for (j, line) in game.board.iter().enumerate() {
         for (i, &alive) in line.iter().enumerate() {
@@ -47,33 +43,27 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
             let x = 10. * i as f32;
             let y = 10. * j as f32;
 
-            commands.spawn(SpriteBundle {
-                sprite: Sprite {
-                    color: color,
-                    custom_size: Some(Vec2::new(10.0, 10.0)),
+            commands
+                .spawn(SpriteBundle {
+                    sprite: Sprite {
+                        color: color,
+                        custom_size: Some(Vec2::new(10.0, 10.0)),
+                        ..default()
+                    },
+                    transform: Transform::from_translation(Vec3::new(x, y, 0.)),
                     ..default()
-                },
-                transform: Transform::from_translation(Vec3::new(x, y, 0.)),
-                ..default()
-            })
-            .insert(Cell { i, j, alive });
+                })
+                .insert(Cell { i, j, alive });
         }
     }
-
 }
 
 fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
     let previous = &game.board;
 
     game.board = (0..game.height)
-    .map(|j| {
-        (0..game.width)
-        .map(|i| {
-            !previous[j][i]
-        })
-        .collect()
-    })
-    .collect();
+        .map(|j| (0..game.width).map(|i| !previous[j][i]).collect())
+        .collect();
 
     for (mut sprite, mut cell) in &mut query {
         cell.alive = game.board[cell.j][cell.i];
@@ -84,8 +74,7 @@ fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
 fn get_color(alive: bool) -> Color {
     if alive {
         Color::rgb(112. / 255., 147. / 255., 204. / 255.)
-    }
-    else {
+    } else {
         Color::rgb(38. / 255., 82. / 255., 153. / 255.)
     }
 }
