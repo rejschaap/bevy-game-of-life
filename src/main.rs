@@ -3,14 +3,13 @@ mod board;
 use bevy::prelude::*;
 use board::*;
 
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .init_resource::<Game>()
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
-        .insert_resource(Time::<Fixed>::from_seconds(1./15.))
+        .insert_resource(Time::<Fixed>::from_seconds(1. / 15.))
         .add_systems(Update, bevy::window::close_on_esc)
         .run();
 }
