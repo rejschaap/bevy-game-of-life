@@ -4,8 +4,66 @@ pub fn create_board_empty(width: usize, height: usize) -> Vec<Vec<bool>> {
         .collect()
 }
 
-pub fn update_board(board: Vec<Vec<bool>>) -> Vec<Vec<bool>> {
+pub fn create_board_with_glider(width: usize, height: usize) -> Vec<Vec<bool>> {
+    let mut board = create_board_empty(width, height);
+
+    board[1][0] = true;
+    board[2][1] = true;
+    board[0][2] = true;
+    board[1][2] = true;
+    board[2][2] = true;
+
     board
+}
+
+pub fn update_board(board: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
+    assert!(board.len() > 0);
+
+    let height = board.len();
+    let width = board[0].len();
+
+    (0..height)
+        .map(|j| (0..width).map(|i| next_cell_state(&board, i, j)).collect())
+        .collect()
+}
+
+fn next_cell_state(board: &Vec<Vec<bool>>, x: usize, y: usize) -> bool {
+    let alive = board[y][x];
+    let count = count_live_neighbours(board, x, y);
+
+    if alive && (count == 2 || count == 3) {
+        return true;
+    }
+
+    if !alive && count == 3 {
+        return true;
+    }
+
+    return false;
+}
+
+fn count_live_neighbours(board: &Vec<Vec<bool>>, x: usize, y: usize) -> i32 {
+    let mut count = 0;
+
+    for j in -1..2 {
+        for i in -1..2 {
+            let index_y = (y as i32 + j).rem_euclid(board.len() as i32) as usize;
+            let index_x = (x as i32 + i).rem_euclid(board[index_y].len() as i32) as usize;
+
+            if index_x == x && index_y == y {
+                // Don't count the cell itself
+                continue;
+            }
+
+            let alive = board[index_y][index_x];
+
+            if alive {
+                count += 1;
+            }
+        }
+    }
+
+    return count;
 }
 
 #[cfg(test)]
@@ -24,6 +82,20 @@ mod test {
     }
 
     #[test]
+    fn test_count_neighbours_three() {
+        // Create a cell with three live neighbours
+        let mut board = create_board_empty(3, 3);
+        board[1][1] = true;
+
+        board[1][2] = true;
+        board[2][2] = true;
+        board[0][0] = true;
+
+        assert_eq!(count_live_neighbours(&board, 1, 1), 3);
+        assert_eq!(count_live_neighbours(&board, 0, 0), 3);
+    }
+
+    #[test]
     fn test_rule_underpopulation_zero() {
         // Rule 1: Any live cell with fewer than two live neighbours dies, as if by underpopulation.
         // Create a cell that is surrounded by dead cells
@@ -31,7 +103,7 @@ mod test {
         board[1][1] = true;
 
         // Update the board
-        board = update_board(board);
+        board = update_board(&board);
 
         // Cell should have died
         assert!(!board[1][1])
@@ -46,7 +118,7 @@ mod test {
         board[1][2] = true;
 
         // Update the board
-        board = update_board(board);
+        board = update_board(&board);
 
         // Cell should have died
         assert!(!board[1][1])
@@ -62,7 +134,7 @@ mod test {
         board[2][2] = true;
 
         // Update the board
-        board = update_board(board);
+        board = update_board(&board);
 
         // Cell should stay alive
         assert!(board[1][1])
@@ -80,7 +152,7 @@ mod test {
         board[0][0] = true;
 
         // Update the board
-        board = update_board(board);
+        board = update_board(&board);
 
         // Cell should stay alive
         assert!(board[1][1])
@@ -99,7 +171,7 @@ mod test {
         board[1][0] = true;
 
         // Update the board
-        board = update_board(board);
+        board = update_board(&board);
 
         // Cell should be dead
         assert!(!board[1][1])
@@ -117,7 +189,7 @@ mod test {
         board[0][0] = true;
 
         // Update the board
-        board = update_board(board);
+        board = update_board(&board);
 
         // Cell should be alive
         assert!(board[1][1])

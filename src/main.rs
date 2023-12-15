@@ -10,6 +10,7 @@ fn main() {
         .init_resource::<Game>()
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
+        .insert_resource(Time::<Fixed>::from_seconds(1./15.))
         .add_systems(Update, bevy::window::close_on_esc)
         .run();
 }
@@ -34,7 +35,7 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     game.width = 32;
     game.height = 20;
 
-    game.board = create_board_empty(game.width, game.height);
+    game.board = create_board_with_glider(game.width, game.height);
 
     for (j, line) in game.board.iter().enumerate() {
         for (i, &alive) in line.iter().enumerate() {
@@ -59,11 +60,7 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
 }
 
 fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
-    let previous = &game.board;
-
-    game.board = (0..game.height)
-        .map(|j| (0..game.width).map(|i| !previous[j][i]).collect())
-        .collect();
+    game.board = update_board(&game.board);
 
     for (mut sprite, mut cell) in &mut query {
         cell.alive = game.board[cell.j][cell.i];
