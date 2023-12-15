@@ -17,13 +17,13 @@ pub fn create_board_with_glider(width: usize, height: usize) -> Vec<Vec<bool>> {
 }
 
 pub fn update_board(board: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {
-    assert!(board.len() > 0);
+    assert!(!board.is_empty());
 
     let height = board.len();
     let width = board[0].len();
 
     (0..height)
-        .map(|j| (0..width).map(|i| next_cell_state(&board, i, j)).collect())
+        .map(|j| (0..width).map(|i| next_cell_state(board, i, j)).collect())
         .collect()
 }
 
@@ -39,7 +39,7 @@ fn next_cell_state(board: &Vec<Vec<bool>>, x: usize, y: usize) -> bool {
         return true;
     }
 
-    return false;
+    false
 }
 
 fn count_live_neighbours(board: &Vec<Vec<bool>>, x: usize, y: usize) -> i32 {
@@ -63,7 +63,7 @@ fn count_live_neighbours(board: &Vec<Vec<bool>>, x: usize, y: usize) -> i32 {
         }
     }
 
-    return count;
+    count
 }
 
 #[cfg(test)]
