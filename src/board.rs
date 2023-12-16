@@ -1,19 +1,39 @@
+use rand::Rng;
+
 pub fn create_board_empty(width: usize, height: usize) -> Vec<Vec<bool>> {
     (0..height)
         .map(|_| (0..width).map(|_| false).collect())
         .collect()
 }
 
-pub fn create_board_with_glider(width: usize, height: usize) -> Vec<Vec<bool>> {
+pub fn create_board_with_gliders(width: usize, height: usize) -> Vec<Vec<bool>> {
+    let mut rng = rand::thread_rng();
     let mut board = create_board_empty(width, height);
+    assert!(board.len() > 0);
 
-    board[1][0] = true;
-    board[2][1] = true;
-    board[0][2] = true;
-    board[1][2] = true;
-    board[2][2] = true;
+    for _ in 0..10 {
+        let x = rng.gen_range(0..board[0].len());
+        let y = rng.gen_range(0..board.len());
+
+        add_glider_to_board(&mut board, x, y);
+    }
 
     board
+}
+
+pub fn add_glider_to_board(board: &mut Vec<Vec<bool>>, x: usize, y: usize) {
+    set_alive(board, 1 + y, 0 + x);
+    set_alive(board, 2 + y, 1 + x);
+    set_alive(board, 0 + y, 2 + x);
+    set_alive(board, 1 + y, 2 + x);
+    set_alive(board, 2 + y, 2 + x);
+}
+
+pub fn set_alive(board: &mut Vec<Vec<bool>>, x: usize, y: usize) {
+    let width = board[0].len();
+    let height = board.len();
+
+    board[y.rem_euclid(height)][x.rem_euclid(width)] = true;
 }
 
 pub fn update_board(board: &Vec<Vec<bool>>) -> Vec<Vec<bool>> {

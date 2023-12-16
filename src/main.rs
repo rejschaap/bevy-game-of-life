@@ -31,7 +31,7 @@ struct Cell {
 fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     game.width = 32;
     game.height = 20;
-    game.board = create_board_with_glider(game.width, game.height);
+    game.board = create_board_with_gliders(game.width, game.height);
 
     let width = game.width as f32;
     let height = game.height as f32;
