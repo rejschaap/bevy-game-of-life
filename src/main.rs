@@ -1,11 +1,13 @@
 mod board;
 
 use bevy::{prelude::*, render::camera};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use board::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(WorldInspectorPlugin::new())
         .init_resource::<Game>()
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
