@@ -1,6 +1,6 @@
 mod board;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, render::camera};
 use board::*;
 
 fn main() {
@@ -29,25 +29,33 @@ struct Cell {
 }
 
 fn setup(mut commands: Commands, mut game: ResMut<Game>) {
-    commands.spawn(Camera2dBundle::default());
-
     game.width = 32;
     game.height = 20;
-
     game.board = create_board_with_glider(game.width, game.height);
+
+    let width = game.width as f32;
+    let height = game.height as f32;
+
+    let mut camera = Camera2dBundle::default();
+    camera.transform = Transform::from_xyz(width / 2.0, height / 2.0, 0.);
+    camera.projection.scaling_mode = camera::ScalingMode::Fixed {
+        width: width,
+        height: height,
+    };
+    commands.spawn(camera);
 
     for (j, line) in game.board.iter().enumerate() {
         for (i, &alive) in line.iter().enumerate() {
             let color = get_color(alive);
 
-            let x = 10. * i as f32;
-            let y = 10. * j as f32;
+            let x = i as f32 + 0.5;
+            let y = j as f32 + 0.5;
 
             commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
                         color,
-                        custom_size: Some(Vec2::new(10.0, 10.0)),
+                        custom_size: Some(Vec2::new(1.0, 1.0)),
                         ..default()
                     },
                     transform: Transform::from_translation(Vec3::new(x, y, 0.)),
