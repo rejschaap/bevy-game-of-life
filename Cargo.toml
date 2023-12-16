@@ -20,3 +20,6 @@ opt-level = 3
 
 [profile.dev.package.bevy-inspector-egui]
 opt-level = 1
+
+[profile.release.package.bevy-inspector-egui]
+opt-level = 1
