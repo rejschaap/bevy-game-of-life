@@ -1,6 +1,6 @@
 mod board;
 
-use bevy::{prelude::*, render::camera};
+use bevy::{app::AppExit, prelude::*, render::camera};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use board::*;
 
@@ -12,7 +12,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
         .insert_resource(Time::<Fixed>::from_seconds(1. / 15.))
-        .add_systems(Update, bevy::window::close_on_esc)
+        .add_systems(Update, (keyboard_input_system, bevy::window::close_on_esc))
         .run();
 }
 
@@ -95,6 +95,48 @@ fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
     for (mut sprite, mut cell) in &mut query {
         cell.alive = game.board[cell.j][cell.i];
         sprite.color = get_color(cell.alive)
+    }
+}
+
+fn keyboard_input_system(
+    mut game: ResMut<Game>,
+    mut commands: Commands,
+    mut exit: EventWriter<AppExit>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        game.pause = !game.pause;
+    }
+
+    if keyboard_input.just_pressed(KeyCode::N) {
+        game.step = true;
+    }
+
+    if keyboard_input.just_pressed(KeyCode::Q) {
+        exit.send(AppExit);
+    }
+
+    if keyboard_input.just_pressed(KeyCode::Back) {
+        game.clear = true;
+    }
+
+    let glider_keys = [
+        KeyCode::Key0,
+        KeyCode::Key1,
+        KeyCode::Key2,
+        KeyCode::Key3,
+        KeyCode::Key4,
+        KeyCode::Key5,
+        KeyCode::Key6,
+        KeyCode::Key7,
+        KeyCode::Key8,
+        KeyCode::Key9,
+    ];
+
+    for (count, &code) in glider_keys.iter().enumerate() {
+        if keyboard_input.just_pressed(code) {
+            game.add_gliders = count as i32;
+        }
     }
 }
 
