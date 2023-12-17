@@ -18,6 +18,10 @@ fn main() {
 
 #[derive(Resource, Default)]
 struct Game {
+    pause: bool,
+    clear: bool,
+    add_gliders: i32,
+    step: bool,
     width: usize,
     height: usize,
     board: Vec<Vec<bool>>,
@@ -69,7 +73,24 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
 }
 
 fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
-    game.board = update_board(&game.board);
+    if game.clear {
+        game.board = create_board_empty(game.width, game.height);
+        game.clear = false;
+    }
+
+    if !game.pause || game.step {
+        game.board = update_board(&game.board);
+        game.step = false;
+    }
+
+    if game.add_gliders > 0 {
+        let count = game.add_gliders;
+        let width = game.width;
+        let height = game.height;
+
+        add_gliders_to_board(&mut game.board, count, width, height);
+        game.add_gliders = 0;
+    }
 
     for (mut sprite, mut cell) in &mut query {
         cell.alive = game.board[cell.j][cell.i];
