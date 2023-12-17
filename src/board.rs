@@ -16,7 +16,7 @@ pub fn create_board_with_gliders(width: usize, height: usize) -> Vec<Vec<bool>> 
 
 pub fn add_gliders_to_board(board: &mut Vec<Vec<bool>>, count: i32, width: usize, height: usize) {
     let mut rng = rand::thread_rng();
-    assert!(board.len() > 0);
+    assert!(!board.is_empty());
 
     for _ in 0..count {
         let x = rng.gen_range(0..width);
@@ -27,9 +27,9 @@ pub fn add_gliders_to_board(board: &mut Vec<Vec<bool>>, count: i32, width: usize
 }
 
 pub fn add_glider_to_board(board: &mut Vec<Vec<bool>>, x: usize, y: usize) {
-    set_alive(board, 1 + y, 0 + x);
+    set_alive(board, 1 + y, x);
     set_alive(board, 2 + y, 1 + x);
-    set_alive(board, 0 + y, 2 + x);
+    set_alive(board, y, 2 + x);
     set_alive(board, 1 + y, 2 + x);
     set_alive(board, 2 + y, 2 + x);
 }

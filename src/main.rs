@@ -42,12 +42,11 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     let width = game.width as f32;
     let height = game.height as f32;
 
-    let mut camera = Camera2dBundle::default();
-    camera.transform = Transform::from_xyz(width / 2.0, height / 2.0, 0.);
-    camera.projection.scaling_mode = camera::ScalingMode::Fixed {
-        width: width,
-        height: height,
+    let mut camera = Camera2dBundle {
+        transform: Transform::from_xyz(width / 2.0, height / 2.0, 0.),
+        ..Default::default()
     };
+    camera.projection.scaling_mode = camera::ScalingMode::Fixed { width, height };
     commands.spawn(camera);
 
     for (j, line) in game.board.iter().enumerate() {
@@ -100,7 +99,6 @@ fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
 
 fn keyboard_input_system(
     mut game: ResMut<Game>,
-    mut commands: Commands,
     mut exit: EventWriter<AppExit>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
