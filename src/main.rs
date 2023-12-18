@@ -19,6 +19,9 @@ fn main() {
         arg!(-H --height <HEIGHT> "Height of the simulation")
             .default_value("20")
             .value_parser(clap::value_parser!(std::primitive::usize)),
+        arg!(-s --size <SIZE> "Size of a cell (used to calculate the window size)")
+            .default_value("40")
+            .value_parser(clap::value_parser!(std::primitive::usize)),
         arg!(-f --framerate <FRAMERATE> "Framerate of the simulation")
             .default_value("15")
             .value_parser(clap::value_parser!(std::primitive::usize)),
@@ -26,12 +29,13 @@ fn main() {
     let matches = cli.get_matches();
     let width = matches.get_one::<usize>("width").unwrap();
     let height = matches.get_one::<usize>("height").unwrap();
+    let size: f32 = *(matches.get_one::<usize>("size").unwrap()) as f32;
     let framerate = matches.get_one::<usize>("framerate").unwrap();
 
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                resolution: WindowResolution::new(*width as f32, *height as f32),
+                resolution: WindowResolution::new(*width as f32 * size, *height as f32 * size),
                 ..default()
             }),
             ..default()
@@ -70,8 +74,6 @@ struct Cell {
 }
 
 fn setup(mut commands: Commands, mut game: ResMut<Game>) {
-    game.width = 32;
-    game.height = 20;
     game.board = create_board_with_gliders(game.width, game.height);
     game.cursor_positions = vec![];
 

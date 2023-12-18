@@ -27,11 +27,11 @@ pub fn add_gliders_to_board(board: &mut Vec<Vec<bool>>, count: i32, width: usize
 }
 
 pub fn add_glider_to_board(board: &mut Vec<Vec<bool>>, x: usize, y: usize) {
-    set_alive(board, 1 + y, x);
-    set_alive(board, 2 + y, 1 + x);
-    set_alive(board, y, 2 + x);
-    set_alive(board, 1 + y, 2 + x);
-    set_alive(board, 2 + y, 2 + x);
+    set_alive(board, x, 1 + y);
+    set_alive(board, 1 + x, 2 + y);
+    set_alive(board, 2 + x, y);
+    set_alive(board, 2 + x, 1 + y);
+    set_alive(board, 2 + x, 2 + y);
 }
 
 pub fn set_alive(board: &mut Vec<Vec<bool>>, x: usize, y: usize) {
