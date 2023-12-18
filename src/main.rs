@@ -17,14 +17,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
         .insert_resource(Time::<Fixed>::from_seconds(1. / 15.))
-        .add_systems(
-            Update,
-            (
-                mouse_input_system,
-                keyboard_input_system,
-                bevy::window::close_on_esc,
-            ),
-        )
+        .add_systems(Update, (mouse_input_system, keyboard_input_system))
         .run();
 }
 
@@ -167,7 +160,7 @@ fn keyboard_input_system(
         game.step = true;
     }
 
-    if keyboard_input.just_pressed(KeyCode::Q) {
+    if keyboard_input.just_pressed(KeyCode::Q) || keyboard_input.just_pressed(KeyCode::Escape) {
         exit.send(AppExit);
     }
 
