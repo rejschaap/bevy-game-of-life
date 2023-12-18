@@ -5,18 +5,46 @@ use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
     render::camera,
+    window::WindowResolution,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use board::*;
+use clap::{arg, command};
 
 fn main() {
+    let cli = command!().args([
+        arg!(-W--width <WIDTH> "Width of the simulation")
+            .default_value("32")
+            .value_parser(clap::value_parser!(std::primitive::usize)),
+        arg!(-H --height <HEIGHT> "Height of the simulation")
+            .default_value("20")
+            .value_parser(clap::value_parser!(std::primitive::usize)),
+        arg!(-f --framerate <FRAMERATE> "Framerate of the simulation")
+            .default_value("15")
+            .value_parser(clap::value_parser!(std::primitive::usize)),
+    ]);
+    let matches = cli.get_matches();
+    let width = matches.get_one::<usize>("width").unwrap();
+    let height = matches.get_one::<usize>("height").unwrap();
+    let framerate = matches.get_one::<usize>("framerate").unwrap();
+
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                resolution: WindowResolution::new(*width as f32, *height as f32),
+                ..default()
+            }),
+            ..default()
+        }))
         .add_plugins(WorldInspectorPlugin::new())
-        .init_resource::<Game>()
+        .insert_resource(Game {
+            width: *width,
+            height: *height,
+            ..default()
+        })
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
-        .insert_resource(Time::<Fixed>::from_seconds(1. / 15.))
+        .insert_resource(Time::<Fixed>::from_seconds(1. / *framerate as f64))
         .add_systems(Update, (mouse_input_system, keyboard_input_system))
         .run();
 }
