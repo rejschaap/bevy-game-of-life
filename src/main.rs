@@ -1,6 +1,11 @@
 mod board;
 
-use bevy::{app::AppExit, prelude::*, render::camera};
+use bevy::{
+    app::AppExit,
+    input::{mouse::MouseButtonInput, ButtonState},
+    prelude::*,
+    render::camera,
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use board::*;
 
@@ -12,12 +17,21 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
         .insert_resource(Time::<Fixed>::from_seconds(1. / 15.))
-        .add_systems(Update, (keyboard_input_system, bevy::window::close_on_esc))
+        .add_systems(
+            Update,
+            (
+                mouse_input_system,
+                keyboard_input_system,
+                bevy::window::close_on_esc,
+            ),
+        )
         .run();
 }
 
 #[derive(Resource, Default)]
 struct Game {
+    selecting: bool,
+    cursor_positions: Vec<Vec2>,
     pause: bool,
     clear: bool,
     add_gliders: i32,
@@ -38,6 +52,7 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     game.width = 32;
     game.height = 20;
     game.board = create_board_with_gliders(game.width, game.height);
+    game.cursor_positions = vec![];
 
     let width = game.width as f32;
     let height = game.height as f32;
@@ -71,7 +86,13 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     }
 }
 
-fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
+fn update(
+    mut game: ResMut<Game>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    mut query: Query<(&mut Sprite, &mut Cell)>,
+) {
+    let (camera, camera_transform) = camera_query.single();
+
     if game.clear {
         game.board = create_board_empty(game.width, game.height);
         game.clear = false;
@@ -91,9 +112,45 @@ fn update(mut game: ResMut<Game>, mut query: Query<(&mut Sprite, &mut Cell)>) {
         game.add_gliders = 0;
     }
 
+    for viewport_position in game.cursor_positions.clone() {
+        let point = camera
+            .viewport_to_world_2d(camera_transform, viewport_position)
+            .unwrap();
+        if point.x >= 0.0
+            && point.y >= 0.0
+            && point.x < game.width as f32
+            && point.y < game.height as f32
+        {
+            let x = point.x as usize;
+            let y = point.y as usize;
+
+            set_alive(&mut game.board, x, y);
+        }
+    }
+    game.cursor_positions = vec![];
+
     for (mut sprite, mut cell) in &mut query {
         cell.alive = game.board[cell.j][cell.i];
         sprite.color = get_color(cell.alive)
+    }
+}
+
+fn mouse_input_system(
+    mut game: ResMut<Game>,
+    mut button: EventReader<MouseButtonInput>,
+    mut cursor: EventReader<CursorMoved>,
+) {
+    for event in button.read() {
+        game.selecting = match event.state {
+            ButtonState::Pressed => true,
+            ButtonState::Released => false,
+        };
+    }
+
+    if game.selecting {
+        for event in cursor.read() {
+            game.cursor_positions.push(event.position);
+        }
     }
 }
 
