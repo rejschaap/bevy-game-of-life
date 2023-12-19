@@ -9,46 +9,56 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use board::*;
-use clap::{arg, command};
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(author, version)]
+#[command(about = "Using Bevy to simulate the Game of Life", long_about = None)]
+struct Cli {
+    /// Width of the simulation
+    #[arg(short, long)]
+    #[arg(default_value = "32")]
+    width: usize,
+
+    /// Height of the simulation
+    #[arg(short = 'H', long)]
+    #[arg(default_value = "20")]
+    height: usize,
+
+    /// Size of a cell in pixels
+    #[arg(short, long)]
+    #[arg(default_value = "40")]
+    size: usize,
+
+    /// Framerate of the simulation
+    #[arg(short, long)]
+    #[arg(default_value = "15")]
+    framerate: usize,
+}
 
 fn main() {
-    let cli = command!().args([
-        arg!(-W--width <WIDTH> "Width of the simulation")
-            .default_value("32")
-            .value_parser(clap::value_parser!(std::primitive::usize)),
-        arg!(-H --height <HEIGHT> "Height of the simulation")
-            .default_value("20")
-            .value_parser(clap::value_parser!(std::primitive::usize)),
-        arg!(-s --size <SIZE> "Size of a cell (used to calculate the window size)")
-            .default_value("40")
-            .value_parser(clap::value_parser!(std::primitive::usize)),
-        arg!(-f --framerate <FRAMERATE> "Framerate of the simulation")
-            .default_value("15")
-            .value_parser(clap::value_parser!(std::primitive::usize)),
-    ]);
-    let matches = cli.get_matches();
-    let width = matches.get_one::<usize>("width").unwrap();
-    let height = matches.get_one::<usize>("height").unwrap();
-    let size: f32 = *(matches.get_one::<usize>("size").unwrap()) as f32;
-    let framerate = matches.get_one::<usize>("framerate").unwrap();
+    let cli = Cli::parse();
 
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                resolution: WindowResolution::new(*width as f32 * size, *height as f32 * size),
+                resolution: WindowResolution::new(
+                    cli.width as f32 * cli.size as f32,
+                    cli.height as f32 * cli.size as f32,
+                ),
                 ..default()
             }),
             ..default()
         }))
         .add_plugins(WorldInspectorPlugin::new())
         .insert_resource(Game {
-            width: *width,
-            height: *height,
+            width: cli.width,
+            height: cli.height,
             ..default()
         })
         .add_systems(Startup, setup)
         .add_systems(FixedUpdate, update)
-        .insert_resource(Time::<Fixed>::from_seconds(1. / *framerate as f64))
+        .insert_resource(Time::<Fixed>::from_seconds(1. / cli.framerate as f64))
         .add_systems(Update, (mouse_input_system, keyboard_input_system))
         .run();
 }
