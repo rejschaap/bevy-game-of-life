@@ -90,31 +90,48 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     let width = game.width as f32;
     let height = game.height as f32;
 
-    let mut camera = Camera2dBundle {
-        transform: Transform::from_xyz(width / 2.0, height / 2.0, 0.),
-        ..Default::default()
-    };
+    let mut camera = Camera2dBundle::default();
     camera.projection.scaling_mode = camera::ScalingMode::Fixed { width, height };
     commands.spawn(camera);
 
+    let board_id = commands
+        .spawn(SpatialBundle {
+            transform: Transform::from_translation(Vec3::new(
+                0.5 - width / 2.0,
+                0.5 - height / 2.0,
+                0.,
+            )),
+            ..default()
+        })
+        .insert(Name::new("Board"))
+        .id();
+
     for (j, line) in game.board.iter().enumerate() {
+        let row = commands
+            .spawn(SpatialBundle {
+                transform: Transform::from_translation(Vec3::new(0., j as f32, 0.)),
+                ..default()
+            })
+            .insert(Name::new(format!("Row {j}")))
+            .id();
+        commands.entity(board_id).push_children(&[row]);
+
         for (i, &alive) in line.iter().enumerate() {
-            let color = get_color(alive);
-
-            let x = i as f32 + 0.5;
-            let y = j as f32 + 0.5;
-
-            commands
+            let child = commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
-                        color,
+                        color: get_color(alive),
                         custom_size: Some(Vec2::new(1.0, 1.0)),
                         ..default()
                     },
-                    transform: Transform::from_translation(Vec3::new(x, y, 0.)),
+                    transform: Transform::from_translation(Vec3::new(i as f32, 0., 0.)),
                     ..default()
                 })
-                .insert(Cell { i, j, alive });
+                .insert(Cell { i, j, alive })
+                .insert(Name::new(format!("Cell ({i}, {j})")))
+                .id();
+
+            commands.entity(row).push_children(&[child]);
         }
     }
 }
