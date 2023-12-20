@@ -5,7 +5,7 @@ use bevy::{
     input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
     render::camera,
-    window::WindowResolution,
+    window::{PrimaryWindow, WindowResolution},
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use board::*;
@@ -90,17 +90,16 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
     let width = game.width as f32;
     let height = game.height as f32;
 
-    let mut camera = Camera2dBundle::default();
+    let mut camera = Camera2dBundle {
+        transform: Transform::from_xyz(width / 2.0, height / 2.0, 0.),
+        ..Default::default()
+    };
     camera.projection.scaling_mode = camera::ScalingMode::Fixed { width, height };
     commands.spawn(camera);
 
     let board_id = commands
         .spawn(SpatialBundle {
-            transform: Transform::from_translation(Vec3::new(
-                0.5 - width / 2.0,
-                0.5 - height / 2.0,
-                0.,
-            )),
+            transform: Transform::from_translation(Vec3::new(0.5, 0.5, 0.)),
             ..default()
         })
         .insert(Name::new("Board"))
@@ -166,6 +165,7 @@ fn update(
         let point = camera
             .viewport_to_world_2d(camera_transform, viewport_position)
             .unwrap();
+
         if point.x >= 0.0
             && point.y >= 0.0
             && point.x < game.width as f32
@@ -189,12 +189,19 @@ fn mouse_input_system(
     mut game: ResMut<Game>,
     mut button: EventReader<MouseButtonInput>,
     mut cursor: EventReader<CursorMoved>,
+    q_windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     for event in button.read() {
         game.selecting = match event.state {
             ButtonState::Pressed => true,
             ButtonState::Released => false,
         };
+
+        if game.selecting {
+            if let Some(position) = q_windows.single().cursor_position() {
+                game.cursor_positions.push(position);
+            }
+        }
     }
 
     if game.selecting {
