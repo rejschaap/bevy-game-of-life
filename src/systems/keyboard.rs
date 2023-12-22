@@ -1,5 +1,5 @@
 use crate::Game;
-use bevy::{prelude::*, app::AppExit};
+use bevy::{app::AppExit, prelude::*};
 
 pub fn keyboard_input_system(
     mut game: ResMut<Game>,

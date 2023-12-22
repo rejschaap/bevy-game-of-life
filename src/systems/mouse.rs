@@ -1,5 +1,9 @@
 use crate::Game;
-use bevy::{prelude::*, input::{mouse::MouseButtonInput, ButtonState}, window::PrimaryWindow};
+use bevy::{
+    input::{mouse::MouseButtonInput, ButtonState},
+    prelude::*,
+    window::PrimaryWindow,
+};
 
 pub fn mouse_input_system(
     mut game: ResMut<Game>,

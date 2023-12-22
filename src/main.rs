@@ -1,11 +1,7 @@
 mod board;
 mod systems;
 
-use bevy::{
-    prelude::*,
-    render::camera,
-    window::WindowResolution,
-};
+use bevy::{prelude::*, render::camera, window::WindowResolution};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use board::*;
 use clap::Parser;
