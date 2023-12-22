@@ -73,7 +73,7 @@ struct Game {
     step: bool,
     width: usize,
     height: usize,
-    board: Vec<Vec<bool>>,
+    board: Board,
 }
 
 #[derive(Component, Debug)]
@@ -84,7 +84,7 @@ struct Cell {
 }
 
 fn setup(mut commands: Commands, mut game: ResMut<Game>) {
-    game.board = create_board_with_gliders(game.width, game.height);
+    game.board = Board::with_gliders(game.width, game.height);
     game.cursor_positions = vec![];
 
     let width = game.width as f32;
@@ -105,17 +105,17 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
         .insert(Name::new("Board"))
         .id();
 
-    for (j, line) in game.board.iter().enumerate() {
-        let row = commands
+    for (j, row) in game.board.rows().enumerate() {
+        let row_entity = commands
             .spawn(SpatialBundle {
                 transform: Transform::from_translation(Vec3::new(0., j as f32, 0.)),
                 ..default()
             })
             .insert(Name::new(format!("Row {j}")))
             .id();
-        commands.entity(board_id).push_children(&[row]);
+        commands.entity(board_id).push_children(&[row_entity]);
 
-        for (i, &alive) in line.iter().enumerate() {
+        for (i, &alive) in row.iter().enumerate() {
             let child = commands
                 .spawn(SpriteBundle {
                     sprite: Sprite {
@@ -130,7 +130,7 @@ fn setup(mut commands: Commands, mut game: ResMut<Game>) {
                 .insert(Name::new(format!("Cell ({i}, {j})")))
                 .id();
 
-            commands.entity(row).push_children(&[child]);
+            commands.entity(row_entity).push_children(&[child]);
         }
     }
 }
@@ -143,21 +143,18 @@ fn update(
     let (camera, camera_transform) = camera_query.single();
 
     if game.clear {
-        game.board = create_board_empty(game.width, game.height);
+        game.board = Board::empty(game.board.width(), game.board.height());
         game.clear = false;
     }
 
     if !game.pause || game.step {
-        game.board = update_board(&game.board);
+        game.board = game.board.update();
         game.step = false;
     }
 
     if game.add_gliders > 0 {
         let count = game.add_gliders;
-        let width = game.width;
-        let height = game.height;
-
-        add_gliders_to_board(&mut game.board, count, width, height);
+        game.board.add_gliders(count);
         game.add_gliders = 0;
     }
 
@@ -174,13 +171,13 @@ fn update(
             let x = point.x as usize;
             let y = point.y as usize;
 
-            set_alive(&mut game.board, x, y);
+            game.board.set_alive(x, y);
         }
     }
     game.cursor_positions = vec![];
 
     for (mut sprite, mut cell) in &mut query {
-        cell.alive = game.board[cell.j][cell.i];
+        cell.alive = game.board.is_alive(cell.i, cell.j);
         sprite.color = get_color(cell.alive)
     }
 }
