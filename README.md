@@ -18,3 +18,5 @@ The following controls are available.
 * **BACKSPACE** clear the board
 * **0-9** spawn a number of gliders at random positions
 * **ESCAPE** or **Q** to quit
+
+![Example](example.gif "Example")
